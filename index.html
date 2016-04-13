@@ -1,0 +1,1167 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Decoupled Drupal with React</title>
+
+		<meta name="description" content="An introduction to decoupled Drupal and how to pair it with a React-based front end">
+		<meta name="author" content="Preston So">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/night.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h1>Decoupled Drupal with React</h1>
+					<h3>Preston So</h3>
+					<p>
+						<a href="https://drupal.org/u/prestonso">prestonso</a> &bull; <a href="https://twitter.com/prestonso">@prestonso</a> &bull; <a href="http://preston.so">preston.so</a>
+					</p>
+				</section>
+
+				<section>
+					<h2>Welcome</h2>
+					<p>
+						<strong>Preston So</strong> has designed and developed websites since 2001 and built them in Drupal since 2007. He is Development Manager of Acquia Labs at Acquia and co-founder of the Southern Colorado Drupal User Group (est. 2008). Previously, Preston was Technical Lead of <em>Entertainment Weekly</em> at Time Inc.
+					</p>
+				</section>
+
+				<section>
+					<h2>What we'll cover</h2>
+					<ol>
+						<li>What is decoupled Drupal?</li>
+						<li>What is React?</li>
+						<li>React architecture and components</li>
+						<li>React and decoupled Drupal</li>
+						<li>React and the Drupal ecosystem</li>
+					</ol>
+				</section>
+
+				<!-- 1. What is decoupled Drupal? -->
+				<section>
+					<section>
+						<h2>What is decoupled Drupal?</h2>
+						<ul>
+							<li>Background and history</li>
+							<li>What is decoupled Drupal?</li>
+							<li>Decoupled Drupal 7 and 8</li>
+							<li>Setting up RESTful Drupal</li>
+						</ul>
+					</section>
+
+					<!-- 1.1. Background and history -->
+					<section>
+						<h3>A brief history of content management</h3>
+						<ul>
+							<li>Content management systems like Drupal are traditionally monolithic.</li>
+							<li>In traditional monolithic CMS architectures, the CMS provides soup-to-nuts feature sets.</li>
+							<li>This includes server-side templating, and all markup is controlled by a server-side language.</li>
+            </ul>
+					</section>
+					<section>
+						<h3>From Web 1.0 to Web 3.0</h3>
+						<ul>
+							<li>Web 1.0: Flat front-end assets uploaded via FTP, fetched by browser.</li>
+							<li>Web 2.0: Content management system provides a server-side template engine which couples data with markup rendering. The server side provides all data.</li>
+							<li>Web 3.0: A RESTful API serves as the mediator between server side and client side (often after initial page load). The client side asks for data through XMLHttpRequest, and the RESTful API serves a (JSON) payload.</li>
+            </ul>
+					</section>
+
+					<!-- 1.2. What is decoupled Drupal? -->
+					<section>
+						<h3>What is decoupled Drupal?</h3>
+						<ul>
+							<li>Simply put, decoupled Drupal is the use of Drupal as a data provider by means of a RESTful API. There are two types of architectures in the wild which use this architecture.</li>
+							<li>In fully decoupled Drupal, Drupal serves solely as a JSON API which serves data payloads to other applications. A client-side framework (often shared isomorphically client-server) controls all rendering.</li>
+							<li>In progressively decoupled Drupal, Drupal controls some of the render to provide markup within a single application. JavaScript then takes over client-side rendering.</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Problems of decoupled Drupal</h3>
+						<p>
+							Much of Drupal's robustness is lost.
+						</p>
+						<ul>
+							<li>Cross-origin requests, security, authentication, and passwords</li>
+							<li>Form validation</li>
+							<li>Content workflow and management</li>
+							<li>Layout and display management</li>
+							<li>Multilingual and localization</li>
+							<li>Accessibility and user experience</li>
+						</ul>
+					</section>
+
+					<!-- 1.3. Decoupled Drupal 7 and 8 -->
+					<section>
+						<h3>Decoupled Drupal 7</h3>
+						<ul>
+							<li>Services, a contrib module, is not strictly RESTful but provides web services for Drupal 7 (8 in the works).</li>
+							<li>Built-in REST and XML-RPC interfaces</li>
+							<li>Exposes content entities at custom endpoints</li>
+							<li>Services Entity extends Services to work with all entity types</li>
+						</ul>
+					</section>
+					<section>
+						<img src="assets/wheres-rest.png" alt="Where's the guy using REST correctly?" />
+						<p>
+							<em>Source: GraphQL with Nick Schrock, React London meetup (10/15)</em>
+						</p>
+					</section>
+					<section>
+						<h3>Decoupled Drupal 7</h3>
+						<ul>
+							<li>restWS exposes any Drupal entity on its existing path based on headers.</li>
+							<li>Restful exposes entities whose response data developers can customize.</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Decoupled Drupal 8</h3>
+						<ul>
+							<li>WSCCI (Web Services and Context Core Initiative) incorporated Web Services into Drupal 8 core.</li>
+							<li>The core REST modules allow for all content entities to be exposed as JSON+HAL, and Views natively supports “REST export” as a new display type.</li>
+							<li>There are many issues with REST in core; please consider contributing to RX (REST experience) tagged issues.</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Decoupled Drupal 8</h3>
+						<ul>
+							<li>RELAXed Web Services (contrib) extends the core REST API to include revisions and file attachments, as well as cross-environment UUIDs.</li>
+							<li>RELAXed's mission aligns with movement in content staging and offline-first applications, and it uses the CouchDB API specification.</li>
+						</ul>
+					</section>
+
+					<!-- 1.4. Setting up RESTful Drupal -->
+					<section>
+						<h3>Setting up RESTful Drupal</h3>
+						<ul>
+							<li>Set up a Drupal 8 site through <a href="https://www.acquia.com/downloads">Acquia Dev Desktop</a>. It's a free download and is the most painless way to spin up a Drupal site.</li>
+							<li>Check to make sure it's working locally: <code>http://greatwideopen.dd:8083</code>, for example.</li>
+							<li>Drush is the fastest way to quickly download and install dependencies.</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Installing required modules</h3>
+						<p>
+							Now that you have a working Drupal site, you'll need to set up some dependencies. From your Drupal site, let's enable a few core modules that deal with Web Services.
+						</p>
+						<pre>
+							<code>$ drush en -y hal basic_auth serialization rest</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Installing required modules</h3>
+						<p>
+							You can either use <code>rest.settings.yml</code> to configure Drupal's core REST server, or you can download the <a href="https://drupal.org/project/restui">REST UI</a> module by Juampy NR to hit the ground running.
+						</p>
+						<pre>
+							<code>$ drush dl restui
+$ drush en -y restui</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Installing required modules</h3>
+						<p>
+							Go to the REST UI configuration page and enable HTTP methods on content entities (and views, if you so desire).
+						</p>
+					</section>
+					<section>
+						<h3>Installing required modules</h3>
+						<p>
+							Now let's very quickly generate some content so we can quickly get content out of Drupal. This will generate 20 nodes with filler text.
+						</p>
+						<pre>
+							<code>$ drush dl devel
+$ drush en -y devel
+$ drush en -y devel_generate
+$ drush genc 20</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Testing APIs with Postman</h3>
+						<p>
+							<a href="http://getpostman.com">Postman</a> is an excellent tool to quickly test your REST API and to make sure that your data is provisioned correctly for REST clients. It's available as a Chrome extension or a desktop app.
+						</p>
+					</section>
+					<section>
+						<h3>Testing APIs with Postman</h3>
+						<p>
+							Let's perform a <code>GET</code> request against Drupal's REST API for <code>node/1</code>. This fetches a node, and it will only work without authentication if you enable <code>GET</code> for anonymous users.
+						</p>
+						<pre>
+							<code>GET /node/1?_format=json HTTP/1.1
+Host: dcnj2016.dd:8083
+Accept: application/json
+Cache-Control: no-cache
+Postman-Token: 6c55fb8b-3587-2f36-1bee-2141179d1c9c</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Testing APIs with Postman</h3>
+						<p>
+							Let's add a node to Drupal by making a <code>POST</code> request against <code>/entity/node</code>.
+						</p>
+						<pre>
+							<code>POST /entity/node HTTP/1.1
+Host: dcnj2016.dd:8083
+Accept: application/json
+Authorization: Basic YWRtaW46YWRtaW4=
+Content-Type: application/json
+Cache-Control: no-cache
+Postman-Token: 7776d489-e9bb-cad2-d289-24aa76f8f8a6
+
+{
+  "type": [
+    {"target_id": "article"}
+  ],
+  "title": [
+    {"value": "Lorem ipsum dolor sit amet adipiscing"}
+  ],
+  "body": [
+    {"value": "This is a totally new article"}
+  ]
+}</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Testing APIs with Postman</h3>
+						<p>
+							<code>PATCH</code> will update our node with new content.
+						</p>
+						<pre>
+							<code>PATCH /node/23 HTTP/1.1
+Host: dcnj2016.dd:8083
+Accept: application/json
+Authorization: Basic YWRtaW46YWRtaW4=
+Content-Type: application/json
+Cache-Control: no-cache
+Postman-Token: c1e4df7e-b17b-2256-75c8-55629c8329c7
+
+{
+  "nid": [
+    {"value": "23"}
+  ],
+  "type": [
+    {"target_id": "article"}
+  ],
+  "title": [
+    {"value": "UPDATE UPDATE UPDATE UPDATE"}
+  ],
+  "body": [
+    {"value": "Awesome update happened here"}
+  ]
+}</code>
+						</pre>
+					</section>
+				</section>
+
+				<!-- 2. What is React? -->
+				<section>
+					<section>
+						<h2>What is React?</h2>
+						<ul>
+							<li>The beginnings of React</li>
+							<li>React is a library, not an MVC framework</li>
+							<li>Differences with other frameworks</li>
+							<li>Drawbacks of React</li>
+						</ul>
+					</section>
+
+					<!-- 2.1. The beginnings of React -->
+					<section>
+						<h3>The beginnings of React</h3>
+						<ul>
+							<li>Started in 2013, React has quickly grown in popularity due to its declarative approach to state, colocation of templates with view logic, and unopinionatedness about the stack.</li>
+							<li>In the last few years, a larger ecosystem has grown around React.</li>
+						</ul>
+					</section>
+					<section>
+						<h3>React is a library, not an MVC framework</h3>
+						<ul>
+							<li>React is “a library for building composable user interfaces” with reusable components.</li>
+							<li>Many people think of React as the V (view) in MVC (model–view–controller).</li>
+							<li>Because React is a library, there are many starter kits that you can use, since there is no consensus around a canonically acceptable set of libraries for routing, etc.</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Differences with other frameworks</h3>
+						<ul>
+							<li>Traditionally, MVC frameworks using a declarative approach and data binding needed to apply changes directly on the DOM.</li>
+							<li>Angular 1, for example, manually updated DOM nodes.</li>
+							<li>React uses a Virtual DOM, which is an abstract DOM that allows different UI states to be diffed. In this way the most efficient DOM manipulation is possible.</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Drawbacks of React</h3>
+						<ul>
+							<li>React is still in 0.x and as such is inherently unstable, with many BC-breaking changes in minors.</li>
+							<li>React builds are challenging due to the lack of coverage of the stack. Flux architectures and the Redux library are some tools that figure commonly in React builds, along with libraries such as react-router.</li>
+							<li>React has much less focus on Web Components support than Angular 2 and Ember.</li>
+						</ul>
+					</section>
+				</section>
+
+				<!-- 3. React architecture and components -->
+				<section>
+					<section>
+						<h2>React architecture and components</h2>
+						<ul>
+							<li>React dependencies</li>
+							<li>Express server setup</li>
+							<li>Routing</li>
+							<li>React components</li>
+							<li>Request handling</li>
+							<li>Client-side rendering</li>
+						</ul>
+					</section>
+
+					<!-- 3.1. React dependencies -->
+					<section>
+						<h3>React dependencies</h3>
+						<p>
+							You don't have to use npm with React, but it's highly recommended (these examples use npm). If you want to use JSX, React has an additional dependency on Babel. Let's initialize a project and create <code>package.json</code>, our dependency list. npm can do this for us.
+						</p>
+						<pre>
+							<code class="nohighlight hljs">$ npm init -y
+$ npm install --save react react-dom</code>
+						</pre>
+					</section>
+					<section>
+						<h3>React dependencies</h3>
+						<p>
+							We'll be using ES2015, so you'll need to add some development dependencies ...
+						</p>
+						<pre>
+							<code class="nohighlight hljs">$ npm install --save-dev babelify babel-preset-es2015 babel-preset-react babel-cli
+</code>
+						</pre>
+					</section>
+					<section>
+						<h3>React dependencies</h3>
+						<p>
+							... and create a <code>.babelrc</code> file in your project root.
+						</p>
+						<pre>
+							<code class="json">// .babelrc
+{
+  "presets": ["es2015", "react"]
+}
+</code>
+						</pre>
+					</section>
+					<section>
+						<h3>React dependencies</h3>
+						<p>
+							To test this locally and use server-side rendering, we'll use ejs, a server-side template engine, and Express, a Node.js framework. These are application (not build) dependencies.
+						</p>
+						<pre>
+							<code class="sh">$ npm install --save ejs express
+</code>
+						</pre>
+					</section>
+					<section>
+						<h3>React dependencies</h3>
+						<p>
+							We'll also want to install react-router, which is the most popular routing solution for React.
+						</p>
+						<pre>
+							<code class="sh">$ npm install --save react-router
+</code>
+						</pre>
+					</section>
+					<section>
+						<h3>React dependencies</h3>
+						<p>
+							Your dependencies in <code>package.json</code> should now look like this:
+						</p>
+						<pre>
+							<code class="json">{
+// name, version, etc.
+  "dependencies": {
+    "ejs": "^2.4.1",
+    "express": "^4.13.4",
+    "react": "^0.14.7",
+    "react-dom": "^0.14.7",
+    "react-router": "^2.0.1",
+  },
+  "devDependencies": {
+    "babel-cli": "^6.6.5",
+    "babel-loader": "^6.2.4",
+    "babel-preset-es2015": "^6.6.0",
+    "babel-preset-react": "^6.5.0",
+    "babelify": "^7.2.0",
+    "webpack": "^1.12.14"
+  }
+}</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Express server setup</h3>
+						<p>
+							Now let's set up our server. In your root, create a new <code>server.js</code>. This is adapted from Jack Franklin's excellent 24ways article on <a href="https://24ways.org/2015/universal-react">universal React</a>.
+						</p>
+						<pre>
+							<code class="javascript">// server.js
+import express from 'express';
+
+const app = express();
+app.use(express.static('public'));
+app.set('view engine', 'ejs');
+app.get('*', (req, res) => {
+  res.render('index');
+});
+
+app.listen(3003, 'localhost', (err) => {
+  if (err) {
+    console.log(err);
+    return;
+  }
+  console.log('Listening on 3003');
+});</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Express server setup</h3>
+						<p>
+							In order for Express to recognize our HTML, we need to save it as views/index.ejs.
+						</p>
+						<pre>
+							<code class="html">// views/index.ejs
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+  &lt;head&gt;&lt;title&gt;Hello world!&lt;/title&gt;&lt;/head&gt;
+  &lt;body&gt;Hello world!&lt;/body&gt;
+&lt;/html&gt;</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Express server setup</h3>
+						<p>
+							Now we can start the server locally on port 3003.
+						</p>
+						<pre>
+							<code class="sh">$ ./node_modules/.bin/babel-node server.js
+# If you have it installed globally:
+$ babel-node server.js</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Express server setup</h3>
+						<p>
+							To make this easier, you can alias <code>npm start</code> in <code>package.json</code>.
+						</p>
+						<pre>
+							<code class="json">// package.json
+{ // "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" &amp;&amp; exit 1",
+    "start": "./node_modules/.bin/babel-node server.js"
+  },
+  // "keywords": [],
+}</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Express server setup</h3>
+						<p>
+							Since React and its router will be controlling how our markup changes, let's substitute our “Hello world” for a placeholder.
+						</p>
+						<pre>
+							<code class="html">// views/index.ejs
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+  &lt;head&gt;&lt;title&gt;Hello world!&lt;/title&gt;&lt;/head&gt;
+  &lt;body&gt;<div id="app"><%- markup %></div>&lt;/body&gt;
+&lt;/html&gt;</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Routing</h3>
+						<p>
+							Create a new file called <code>routes.js</code>, which will contain the routes we define.
+						</p>
+						<pre>
+							<code>// routes.js
+import AppComponent from './components/app';
+import IndexComponent from './components/index';
+import NodesComponent from './components/nodes';
+
+const routes = {
+  path: '',
+  component: AppComponent,
+  childRoutes: [
+    {
+      path: '/',
+      component: IndexComponent
+    },
+    {
+      path: '/nodes',
+      component: NodesComponent
+    }
+  ]
+};
+
+export { routes };</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Routing</h3>
+						<p>
+							Let's update our <code>server.js</code> file to provide server-side rendering and routes. Above our invocation of Express, insert the following:
+						</p>
+						<pre>
+							<code>// server.js
+import express from 'express'; // Already present
+import React from 'react';
+import { renderToString } from 'react-dom/server';
+import { match, RouterContext } from 'react-router';
+import { routes } from './routes';
+
+// const app = express();</code>
+						</pre>
+					</section>
+					<section>
+						<h3>React components</h3>
+						<p>
+							Now that we've defined routes, we need to match them to components. First we need our overarching <code>AppComponent</code>, within which all of the child components will reside (<code>this.props.children</code>).
+						</p>
+						<pre>
+							<code>// components/app.js
+import React from 'react';
+
+export default class AppComponent extends React.Component {
+  render() {
+    return (
+      <div>
+        <h1>Decoupled Drupal with React</h1>
+        { this.props.children }
+      </div>
+    );
+  }
+}</code>
+						</pre>
+					</section>
+					<section>
+						<h3>React components</h3>
+						<p>
+							Now for our other two components. <code>IndexComponent</code> lies inside <code>AppComponent</code> ...
+						</p>
+						<pre>
+							<code>// components/index.js
+import React from 'react';
+
+export default class IndexComponent extends React.Component {
+  render() {
+    return (
+      <div>
+        <p>Welcome to the home page</p>
+      </div>
+    );
+  }
+}</code>
+						</pre>
+					</section>
+					<section>
+						<h3>React components</h3>
+						<p>
+							... as does <code>NodesComponent</code>.
+						</p>
+						<pre>
+							<code>// components/nodes.js
+import React from 'react';
+
+export default class NodesComponent extends React.Component {
+  render() {
+    return (
+      <div>
+        <p>This is the nodes page</p>
+      </div>
+    );
+  }
+}</code>
+						</pre>
+					</section>
+					<section>
+						<h3>React components</h3>
+						<p>
+							Now let's make sure our server render recognizes any components we want to render there.
+						</p>
+						<pre>
+							<code>// server.js
+import express from 'express';
+import React from 'react';
+import { renderToString } from 'react-dom/server';
+import { match, RouterContext } from 'react-router';
+import { routes } from './routes'; // Everything up to here already present
+import AppComponent from './components/app';
+import IndexComponent from './components/index';
+import NodesComponent from './components/nodes';
+
+// const app = express();
+</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Request handling</h3>
+						<p>
+							Move further down in <code>server.js</code> to provide request handling:
+						</p>
+						<pre>
+							<code>// server.js
+// app.set('view engine', 'ejs');
+app.get('*', (req, res) => {
+  match({ routes, location: req.url }, (err, redirectLocation, props) => {
+    if (err) {
+      res.status(500).send(err.message);
+    } else if (redirectLocation) {
+      res.redirect(302, redirectLocation.pathname + redirectLocation.search);
+    } else if (props) {
+      // props means we have a valid component to render.
+      const markup = renderToString(&lt;RouterContext {...props} /&gt;);
+      // Render index.ejs, but interpolate our custom markup.
+      res.render('index', { markup });
+    } else {
+      res.sendStatus(404);
+    }
+  });
+});
+
+// app.listen(3003, 'localhost', (err) => {})</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Request handling</h3>
+						<p>
+							Let's add a quick navigation bar to the overarching <code>AppComponent</code>.
+						</p>
+						<pre>
+							<code>// components/app.js
+import React from 'react';
+import { Link } from 'react-router';
+
+export default class AppComponent extends React.Component {
+  render() {
+    return (
+      <div>
+        <h1>Decoupled Drupal with React</h1>
+        <ul>
+          <li>&lt;Link to='/'&gt;Home&lt;/Link&gt;</li>
+          <li>&lt;Link to='/nodes'&gt;Nodes&lt;/Link&gt;</li>
+        </ul>
+        { this.props.children }
+      </div>
+    );
+  }
+}</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Client-side rendering</h3>
+						<p>
+							To provide client-side rendering, we will need to include a production-ready build.
+						</p>
+						<pre>
+							<code>// views/index.ejs
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+  &lt;head&gt;&lt;title&gt;Hello world!&lt;/title&gt;&lt;/head&gt;
+  &lt;body&gt;
+    <div id="app"><%- markup %></div>
+    &lt;script type="text/javascript" src="bundle.js"&gt;&lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Client-side rendering</h3>
+						<p>
+							Now let's provide a <code>client.js</code> which will be part of our bundle. It'll give us React for the client side.
+						</p>
+						<pre>
+							<code>// client.js
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Router } from 'react-router';
+import { routes } from './routes';
+import createBrowserHistory from 'history/lib/createBrowserHistory';
+
+ReactDOM.render(
+  &lt;Router routes={routes} history={createBrowserHistory()} /&gt;,
+  document.getElementById('app')
+);</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Client-side rendering</h3>
+						<p>
+							Now we'll build our bundle.
+						</p>
+						<pre>
+							<code>$ npm install --save-dev webpack babel-loader
+
+// webpack.config.js
+var path = require('path');
+module.exports = {
+  entry: path.join(process.cwd(), 'client.js'),
+  output: {
+    path: './public/',
+    filename: 'bundle.js'
+  },
+  module: {
+    loaders: [
+      {
+        test: /.js$/,
+        loader: 'babel'
+      }
+    ]
+  }
+};</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Client-side rendering</h3>
+						<p>
+							Then execute Webpack to create <code>bundle.js</code>. The Webpack command will use our config script.
+						</p>
+						<pre>
+							<code>$ ./node_modules/.bin/webpack</code>
+						</pre>
+					</section>
+				</section>
+
+				<!-- 4. React and decoupled Drupal -->
+				<section>
+					<section>
+						<h2>React and decoupled Drupal</h2>
+						<ul>
+							<li>Cross-origin requests</li>
+							<li>React and REST in Drupal</li>
+							<li>Working with Drupal data in React</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Cross-origin requests</h3>
+						<p>
+							You will need to allow your React application to have access to your Drupal back end. For example, in Apache 2:
+						</p>
+						<pre>
+							<code class="nohighlight hljs">Header set Access-Control-Allow-Origin "*"
+</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Cross-origin requests</h3>
+						<p>
+							You can also use the <a href="https://drupal.org/project/cors">CORS</a> module, which provides a configuration UI at <code>/admin/config/services/cors</code>.
+						</p>
+						<pre>
+							<code class="sh">$ drush dl cors
+$ drush en -y cors</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Cross-origin requests</h3>
+						<p>
+							You can set it like this to allow certain domains to access the origin. Don't forget to clear caches after modifying configuration.
+						</p>
+						<pre>
+							<code class="nohighlight hljs">*|http://localhost:3003</code>
+						</pre>
+						<pre>
+							<code class="sh">$ drush cr</code>
+						</pre>
+					</section>
+					<section>
+						<h3>React and REST in Drupal</h3>
+						<p>
+							To make requests against Drupal's REST API, I recommend using superagent, which has a lightweight API and is comparable to jQuery AJAX.
+						</p>
+						<pre>
+							<code class="sh">$ npm install --save superagent</code>
+						</pre>
+					</section>
+					<section>
+						<h3>React and REST in Drupal</h3>
+						<p>
+							Let's go back to our original <code>GET</code> request using Postman.
+						</p>
+						<pre>
+							<code class="http">GET /node/1?_format=json HTTP/1.1
+Host: dcnj2016.dd:8083
+Accept: application/json
+Cache-Control: no-cache
+</code>
+						</pre>
+					</section>
+					<section>
+						<h3>React and REST in Drupal</h3>
+						<ul>
+							<li>To make synchronous requests during the server-side render, you can make an HTTP request whose response is then used by <code>renderToString</code> so that it is part of React's rendered markup.</li>
+							<li>For both synchronous and asynchronous requests, you can use <code>componentDidMount</code> to dynamically insert data with the Virtual DOM.</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Working with Drupal data in React</h3>
+						<p>
+							Let's go back to our <code>NodesComponent</code>.
+						</p>
+						<pre>
+							<code>// components/nodes.js
+import React from 'react';
+
+export default class NodesComponent extends React.Component {
+  render() {
+    return (
+      <div>
+        <p>This is the nodes page</p>
+      </div>
+    );
+  }
+}</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Working with Drupal data in React</h3>
+						<p>
+							Let's make an asynchronous request with superagent.
+						</p>
+						<pre>
+							<code>// components/nodes.js
+import React from 'react';
+import superagent from 'superagent';
+
+export default class NodesComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      title: '',
+      body: ''
+    }
+  }
+  componentDidMount() {
+    this.serverRequest = superagent
+      .get('http://greatwideopen.dd:8083/node/1?_format=json')
+      .set('Accept', 'application/json')
+      .end(function (err, res) {
+        if (res.status === 200 &amp;&amp; res.body) {
+          var node = res.body;
+          this.setState({
+            title: node.title[0].value,
+            body: node.body[0].value
+          });
+        }
+      }.bind(this));
+  componentWillUnmount() {
+    this.serverRequest.abort();
+  }
+  // render() {
+}
+</code>
+						</pre>
+					</section>
+					<section>
+						<h3>Working with Drupal data in React</h3>
+						<p>
+							Then, in our <code>render</code> function:
+						</p>
+						<pre>
+							<code>// components/nodes.js
+  // componentWillUnmount() {
+  //   this.serverRequest.abort();
+  // }
+  render() {
+    return (
+      <div>
+        <h2>{this.state.title}</h2>
+        <div>{this.state.body}</div>
+      </div>
+    );
+  }
+}
+</code>
+						</pre>
+					</section>
+				</section>
+
+				<!-- 5. React and the Drupal ecosystem -->
+				<section>
+					<section>
+						<h2>React and the Drupal ecosystem</h2>
+						<ul>
+							<li>Decoupled Drupal with React</li>
+							<li>Other Facebook projects</li>
+							<li>GraphQL and Drupal</li>
+							<li>Epilogue: React within Drupal</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Decoupled Drupal with React</h3>
+						<ul>
+							<li>The new Lullabot.com redesign is a fully decoupled React application against a CouchDB replication of the Drupal back end.</li>
+							<li>In <em>progressive decoupling</em>, Drupal constructs the initial page structure and a JavaScript application or client-side framework “takes over” further rendering on the client side.</li>
+							<li>In <em>Drupal-aware full decoupling</em>, Drupal provides important information about Drupal's server-side render in JSON to a JavaScript app or client-side framework which uses it for a full page render (see <a href="https://drupal.org/project/restful_panels">RESTful Panels</a>).</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Progressively decoupled Drupal with React</h3>
+						<ul>
+							<li>React is an exceptional candidate because it is unopinionated about the stack and can be used, for example, with or without a Flux library like Redux. It can act solely as a rendering layer.</li>
+							<li>Miles Blackwood's <a href="https://github.com/blackwood/drupal-react_blocks">drupal-react_blocks</a> module uses React to approximate a realtime push-powered Recent Comments block.</li>
+							<li>Matt Davis' <a href="https://www.drupal.org/sandbox/mrjmd/2664138">Decoupled Blocks</a> module aims to accomplish progressive decoupling in a framework-agnostic manner.</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Other Facebook projects</h3>
+						<ul>
+							<li>Relay is a framework that juxtaposes data fetching needs and React components in the same place; in other words, Relay connects view logic to queries in the back end.</li>
+							<li>GraphQL is a query language that intelligently consolidates RESTful queries into a unified response and returns data according to the same schema as the request query.</li>
+							<li>Thanks to <a href="https://drupal.org/u/fubhy">Sebastian Siemssen</a>, a <a href="https://drupal.org/project/graphql">GraphQL server</a> for Drupal 8 is soon to be released.</li>
+						</ul>
+					</section>
+					<section>
+						<h3>GraphQL and Drupal</h3>
+						<ul>
+							<li>In GraphQL, <em>client requests and server payloads adhere to a shared shape</em>.</li>
+							<li>The server houses the schema. The client dictates what it wants the server to provide.</li>
+							<li>GraphQL resolves typical limitations of RESTful architectures: many endpoints, response bloat, many round trips, no backwards compatibility, and no introspection.</li>
+						</ul>
+					</section>
+					<section>
+						<h3>GraphQL and Drupal</h3>
+						<p>
+							Remember this superagent example earlier? What if we could query our API without assuming that the response will be what we want?
+						</p>
+						<pre>
+							<code class="javascript">// components/nodes.js, abridged
+    // import ...
+
+    export default class NodesComponent extends React.Component {
+      // constructor(props) {}
+      componentDidMount() {
+        this.serverRequest = superagent
+          .get('http://greatwideopen.dd:8083/node/1?_format=json')
+          .set('Accept', 'application/json')
+          .end(function (err, res) {
+            if (res.status === 200 &amp;&amp; res.body) {
+              var node = res.body;
+              this.setState({
+                title: node.title[0].value,
+                body: node.body[0].value
+               });
+            }
+          }.bind(this));
+      // componentWillUnmount() {}
+      // render() {
+    }</code>
+						</pre>
+					</section>
+					<section>
+						<h3>GraphQL and Drupal</h3>
+						<p>
+							With Relay and GraphQL, you can specify the query from the client, such that a node fetch could look something like this.
+						</p>
+						<pre>
+							<code class="javascript">// components/nodes.js, abridged
+    // import ...
+
+    export default class NodesComponent extends React.Component {
+      statics: {
+        queries: {
+          article: function () {
+            return graphql`
+              {
+                entity {
+                  node(id: 1) {
+                    title
+                    body
+                  }
+                }
+              }
+            `;
+          }
+        }
+      }
+      // render() {
+    }</code>
+						</pre>
+					</section>
+					<section>
+						<h3>GraphQL and Drupal</h3>
+						<p>
+							That request will give you a JSON response payload that mirrors the structure of the request.
+						</p>
+						<pre>
+							<code class="json">{
+  "entity": {
+    "node": {
+      "title": "Hello world!",
+      "body": "Lorem ipsum dolor sit amet"
+    }
+  }
+}</code>
+						</pre>
+					</section>
+					<section>
+						<img src="assets/back-to-the-future.jpg" alt="Back to the Future?" />
+					</section>
+					<section>
+						<h3>GraphQL and Drupal</h3>
+						<p>
+							GraphQL allows you to specify fragments to differentiate between, for example, Drupal content types.
+						</p>
+						<pre>
+							<code class="nohighlight hljs">{
+  entity {
+    node(id: 1) {
+      title
+      body
+      ... on EntityNodeArticle {
+        fieldAuthor
+        fieldTags {
+          name
+        }
+      }
+    }
+  }
+}</code>
+						</pre>
+					</section>
+					<section>
+						<h3>GraphQL and Drupal</h3>
+						<p>
+							You can also alias fields based on the needs of your client-side application.
+						</p>
+						<pre>
+							<code class="nohighlight hljs">{
+  content:entity {
+    node(id: 1) {
+      title
+      body
+      ... on EntityNodeArticle {
+        author:fieldAuthor
+        tags:fieldTags {
+          name
+        }
+      }
+    }
+  }
+}</code>
+						</pre>
+					</section>
+					<section>
+						<h3>GraphQL and Drupal</h3>
+						<p>
+							You can also specify variables from the client side which can facilitate a different response.
+						</p>
+						<pre>
+							<code class="nohighlight hljs">query getArticle($nid: Int) {
+  node(id: $nid) {
+    title
+    ... on EntityNodeArticle {
+      body
+    }
+  }
+}</code>
+						</pre>
+					</section>
+					<section>
+						<h3>GraphQL and Drupal</h3>
+						<p>
+							Directives allow you to alter execution behavior and conditionally include fields.
+						</p>
+						<pre>
+							<code class="nohighlight hljs">query getArticle($published: Boolean, $nid: Int) {
+  node(id: $nid) {
+    ... @include(if: $published) {
+      title
+      body
+    }
+  }
+}</code>
+						</pre>
+					</section>
+					<section>
+						<h3>GraphQL and Drupal</h3>
+						<p>
+							To learn more about GraphQL in Drupal, check out the recent Acquia webinar <a href="https://www.acquia.com/resources/webinars/introduction-graphql-and-what-it-means-drupal"><em>An Introduction to GraphQL</em></a> with Sebastian Siemssen and yours truly.
+						</p>
+					</section>
+					<section>
+						<h3>Epilogue: React within Drupal?</h3>
+						<ul>
+							<li>Should you use Drupal with React as a view library to power its administrative user interfaces?</li>
+							<li>Should you use Drupal with React as a means to allow front-end developers to create rich UIs in site themes?</li>
+							<li>Should Drupal <em>adopt</em> React as a view library?</li>
+						</ul>
+					</section>
+				</section>
+
+				<section>
+					<h2>Thank you!</h2>
+					<p>
+						<a href="https://drupal.org/u/prestonso">prestonso</a> &bull; <a href="https://twitter.com/prestonso">@prestonso</a> &bull; <a href="http://preston.so">preston.so</a>
+					</p>
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
